@@ -1,0 +1,1241 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>COLOR LINK</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: wordmark + mode switch on top, square board on the left, status panel on the right; stacks below 820px */
+:root{
+  --bg:#E9ECF2; --panel:#FFFFFF; --board:#F7F8FB; --grid:#D9DEE8; --line:#C6CCDA;
+  --ink:#181C28; --ink2:#586074;
+  --red:#D63049; --blue:#2B59E8; --green:#2E9E3E; --yellow:#E0A200;
+  --ok:#0E8A7B; --on-ok:#FFFFFF; --warn:#B26A00; --glow:#FFFFFF;
+  --f-display:'Unbounded','Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',sans-serif;
+  --f-body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F121A; --panel:#181D2B; --board:#151926; --grid:#232A3B; --line:#2A3144;
+    --ink:#E8EBF3; --ink2:#9AA3B8;
+    --red:#FF5C72; --blue:#6E92FF; --green:#4CCB5C; --yellow:#F5C518;
+    --ok:#35D0BE; --on-ok:#0E1118; --warn:#F2B04A; --glow:#FFFFFF;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F121A; --panel:#181D2B; --board:#151926; --grid:#232A3B; --line:#2A3144;
+  --ink:#E8EBF3; --ink2:#9AA3B8;
+  --red:#FF5C72; --blue:#6E92FF; --green:#4CCB5C; --yellow:#F5C518;
+  --ok:#35D0BE; --on-ok:#0E1118; --warn:#F2B04A; --glow:#FFFFFF;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1040px;margin-inline:auto;display:grid;gap:20px}
+.brand{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+h1{margin:0;font-family:var(--f-display);font-weight:700;font-size:clamp(28px,6vw,44px);letter-spacing:.02em;line-height:1.1}
+.c-red{color:var(--red)} .c-blue{color:var(--blue)}
+.lead{margin:0;color:var(--ink2);min-width:0;flex:1 1 260px}
+.tag{display:inline-block;margin-left:10px;padding:0 8px;border:1px solid var(--line);color:var(--ink2);font-size:12px;letter-spacing:.06em;vertical-align:1px}
+.modes{display:flex;border:1px solid var(--line);background:var(--panel)}
+.modes button{min-height:44px;padding:0 18px;border:0;background:transparent;color:var(--ink);font:700 14px var(--f-body);cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+@media (max-width:820px){.layout{grid-template-columns:minmax(0,1fr)}}
+.stage{min-width:0;display:grid;gap:10px;justify-items:start}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{width:44px;height:44px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:700 14px var(--f-display);cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab:focus-visible,.btn:focus-visible,.swatch:focus-visible,.ctog:focus-visible,.tool:focus-visible,.modes button:focus-visible,select:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.board{width:min(100%,640px);background:var(--board);border:1px solid var(--line);border-radius:6px;touch-action:manipulation}
+.board.done{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
+.board.edit{border-style:dashed;cursor:crosshair}
+svg{display:block;width:100%;height:auto;aspect-ratio:1/1;-webkit-tap-highlight-color:transparent}
+.gridpath{fill:none;stroke:var(--grid);stroke-width:.25}
+.eline{fill:none;stroke-width:1.5;stroke-linecap:round}
+.eline.R,.pv.R{stroke:var(--red)} .eline.B,.pv.B{stroke:var(--blue)}
+.eline.G,.pv.G{stroke:var(--green)} .eline.Y,.pv.Y{stroke:var(--yellow)}
+.ehit{fill:none;stroke:transparent;stroke-width:5;pointer-events:stroke;cursor:pointer}
+.egrp:focus{outline:none}
+.egrp:hover .eline{stroke-dasharray:2.4 2;opacity:.7}
+.egrp:focus-visible .eline{stroke-width:2.6}
+.pv{fill:none;stroke-width:1.2;stroke-dasharray:2 2;opacity:.55;pointer-events:none;stroke-linecap:round}
+.pv.off{display:none}
+.dot{cursor:pointer;transition:opacity .15s}
+.dot:focus{outline:none}
+.b-R{fill:var(--red)} .b-B{fill:var(--blue)} .b-G{fill:var(--green)} .b-Y{fill:var(--yellow)}
+.outline{fill:none;stroke:var(--board);stroke-width:.8}
+.hub{fill:var(--panel)}
+.num{fill:var(--ink);font:700 3.8px var(--f-display);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.ring{fill:none;stroke:transparent;stroke-width:.9}
+.dot.ok .ring{stroke:var(--ok)}
+.dot.over .ring,.dot.bad .ring{stroke:var(--warn)}
+.dot.bad .ring{stroke-dasharray:1.6 1.2}
+.dot.target .ring{stroke:var(--ink2);stroke-dasharray:1.2 1.2}
+.dot.sel .ring{stroke:var(--ink);stroke-width:1.3;stroke-dasharray:none}
+.dot.dim{opacity:.3}
+.dot:focus-visible .ring{stroke:var(--ink);stroke-width:1.3;stroke-dasharray:2 1.2}
+.hint{margin:0;color:var(--ink2);font-size:13px;max-width:640px}
+.msg{margin:0;min-height:1.6em;font-size:14px;color:var(--ink2)}
+.msg.err{color:var(--warn);font-weight:500}
+.panel{background:var(--panel);border:1px solid var(--line);padding:16px;display:grid;gap:18px;min-width:0}
+.panel>div,.panel>details{min-width:0}
+h2{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2);display:flex;justify-content:space-between;gap:8px}
+h2 .cnt{font-family:var(--f-display);font-variant-numeric:tabular-nums;color:var(--ink)}
+kbd{font:500 11px var(--f-body);border:1px solid var(--line);padding:0 5px;margin-left:auto;color:var(--ink2)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.swatch,.ctog,.tool{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:500 13px var(--f-body);cursor:pointer;text-align:left;white-space:nowrap}
+.tool{justify-content:center;padding:0 4px;font-weight:700}
+.swatch::before,.ctog::before{content:"";flex:none;width:20px;height:4px;border-radius:2px;background:var(--col)}
+.ctog::before{height:12px;width:12px;border-radius:50%}
+[data-c="R"]{--col:var(--red)} [data-c="B"]{--col:var(--blue)} [data-c="G"]{--col:var(--green)} [data-c="Y"]{--col:var(--yellow)}
+.swatch[aria-pressed="true"],.ctog[aria-pressed="true"],.tool[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.tool[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.checks li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;font-size:13px;line-height:1.5;color:var(--ink2)}
+.tick{width:16px;height:16px;border:1.5px solid var(--line);border-radius:50%;margin-top:2px;display:grid;place-items:center;font-size:10px;line-height:1}
+.checks li.ok{color:var(--ink)}
+.checks li.ok .tick{background:var(--ok);border-color:var(--ok);color:var(--on-ok)}
+.checks li.ok .tick::after{content:"✓"}
+.progress{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--ink2)}
+.progress b{font-family:var(--f-display);font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums}
+.clear{border:1px solid var(--ok);padding:12px;display:grid;gap:10px}
+.clear strong{font-family:var(--f-display);color:var(--ok);font-size:16px}
+.clear p{margin:0;font-size:13px}
+.group{display:grid;gap:18px}
+.btn{min-height:44px;padding:0 14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:500 14px var(--f-body);cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.rand{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 10px;align-items:center;font-size:13px;color:var(--ink2)}
+.rand .btn{grid-column:1/-1}
+select{min-height:44px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:14px var(--f-body);padding:0 8px;min-width:0}
+.rules,.code{font-size:13px;color:var(--ink2)}
+.rules summary,.code summary{cursor:pointer;font-weight:700;color:var(--ink)}
+.rules ul{margin:8px 0 0;padding-left:1.2em;display:grid;gap:4px}
+.code textarea{display:block;width:100%;margin-top:8px;min-height:84px;resize:vertical;border:1px solid var(--line);background:var(--board);color:var(--ink);font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:8px;word-break:break-all}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.note{margin:0;font-size:12px;color:var(--ink2)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rand .chk{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-height:32px;cursor:pointer}
+.rand .chk input{width:18px;height:18px;margin:0;accent-color:var(--ink)}
+.ana{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:13px;color:var(--ink2);margin-bottom:8px}
+.ana b{color:var(--ink);font-weight:700}
+.ana p{grid-column:1/-1;margin:4px 0 0;font-size:12px;line-height:1.5}
+.hintline{fill:none;stroke-width:2.2;stroke-dasharray:3 2;stroke-linecap:round;pointer-events:none;opacity:.9}
+.hintline.R{stroke:var(--red)} .hintline.B{stroke:var(--blue)} .hintline.G{stroke:var(--green)} .hintline.Y{stroke:var(--yellow)}
+.hintline.rm{stroke:var(--warn);stroke-width:2.8}
+.hintline.off{display:none}
+.dot.hint .ring{stroke:var(--ink);stroke-width:1;stroke-dasharray:2 1.2}
+.egrp.fixed .eline{stroke-width:1.9}
+.egrp.fixed:hover .eline{stroke-dasharray:none;opacity:1}
+.fixmark{fill:var(--panel);stroke:var(--ink);stroke-width:.6;pointer-events:none}
+.fixdot{fill:var(--ink);pointer-events:none}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+.dot.pop{animation:pop .35s ease-out;transform-box:fill-box;transform-origin:center}
+.dot.celebrate{animation:pop .6s ease-out both;animation-delay:var(--d);transform-box:fill-box;transform-origin:center}
+@keyframes wave{0%{stroke-dashoffset:1;opacity:1}70%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.wave{fill:none;stroke:var(--glow);stroke-width:2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;opacity:0;pointer-events:none;animation:wave .55s ease-out forwards;animation-delay:var(--d)}
+.sndbtn{min-height:44px;padding:0 12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:500 13px var(--f-body);cursor:pointer}
+.sndbtn[aria-pressed="false"]{color:var(--ink2)}
+.sndbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.tab.daily{width:auto;padding:0 14px;font:700 13px var(--f-body)}
+.spt{pointer-events:none}
+.board.edit .spt{pointer-events:auto;cursor:pointer}
+.brg{fill:transparent;stroke:var(--ink2);stroke-width:.6;stroke-dasharray:1.6 1.2}
+.brgm{fill:none;stroke:var(--ink2);stroke-width:.7;stroke-linecap:round}
+.blkbg{fill:var(--board)}
+.blk{fill:url(#hatch);stroke:var(--ink2);stroke-width:.6}
+.blkx{fill:none;stroke:var(--ink);stroke-width:.9;stroke-linecap:round}
+.hatchrect{fill:var(--ink2);opacity:.55}
+@media (prefers-reduced-motion:reduce){.dot.pop,.dot.celebrate{animation:none}.wave{display:none}}
+@media (prefers-reduced-motion:reduce){.dot{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="brand">
+    <h1><span class="c-red">COLOR</span> <span class="c-blue">LINK</span></h1>
+    <div class="modes" role="group" aria-label="モード">
+      <button id="mPlay" aria-pressed="true">あそぶ</button>
+      <button id="mEdit" aria-pressed="false">つくる</button>
+    </div>
+    <button id="snd" class="sndbtn" aria-pressed="true">音 ON</button>
+    <p class="lead">色つきの線で、すべての点をひとつのネットワークにつなぐパズル。<span class="tag">プロトタイプ</span></p>
+  </header>
+  <main class="layout">
+    <section class="stage" aria-label="盤面">
+      <div class="tabs" id="tabs" role="group" aria-label="ステージ"></div>
+      <div class="board" id="board">
+        <svg id="svg" viewBox="0 0 100 100" role="group" aria-label="パズル盤面">
+          <defs><pattern id="gp" width="10" height="10" patternUnits="userSpaceOnUse"><path class="gridpath" d="M10 0H0V10"/></pattern><pattern id="hatch" width="2.2" height="2.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatchrect" width="1" height="2.2"/></pattern></defs>
+          <rect width="100" height="100" fill="url(#gp)"/>
+          <g id="gSp"></g>
+          <g id="gEdges"></g>
+          <g id="gFx"></g>
+          <line id="hintLine" class="hintline off" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="preview" class="pv off" x1="0" y1="0" x2="0" y2="0"/>
+          <g id="gDots"></g>
+        </svg>
+      </div>
+      <p class="hint" id="hint"></p>
+      <p id="msg" class="msg" role="status" aria-live="polite"></p>
+    </section>
+    <aside class="panel">
+      <div>
+        <h2><span>線の色</span></h2>
+        <div class="seg" id="swatches"></div>
+      </div>
+
+      <div class="group" id="pPlay">
+        <div>
+          <h2><span>クリア条件</span><span class="cnt" id="count">0/5</span></h2>
+          <ul id="checks" class="checks"></ul>
+        </div>
+        <div class="progress">線 <b id="lc">0</b> / <b id="lt">0</b> 本</div>
+        <div id="clear" class="clear" hidden>
+          <strong>ステージクリア</strong>
+          <p>5つの条件をすべて満たしました。</p>
+          <p id="streak" class="note" hidden></p>
+          <button id="share" class="btn" hidden>結果をコピー</button>
+          <button id="next" class="btn primary">次のステージ</button>
+        </div>
+        <p class="note" id="pInfo"></p>
+        <button id="backEdit" class="btn" hidden>つくるに戻る</button>
+        <div class="pair"><button id="hintBtn" class="btn">ヒント</button><button id="reset" class="btn">全消去</button></div>
+        <div class="rand">
+          <label for="size">点の数</label>
+          <select id="size"><option>6</option><option>8</option><option>10</option><option selected>12</option><option>14</option></select>
+          <label for="kcol">色の数</label>
+          <select id="kcol"><option value="2">2色</option><option value="3">3色</option><option value="4" selected>4色</option></select>
+          <label for="spopt">特殊な点</label>
+          <select id="spopt"><option value="0" selected>なし</option><option value="x">禁止マス</option><option value="b">橋</option><option value="xb">禁止マスと橋</option></select>
+          <label class="chk" for="uniq"><input type="checkbox" id="uniq" checked> 解が1通りの問題だけ</label>
+        <label class="chk" for="fixopt"><input type="checkbox" id="fixopt"> 固定線をつける（手がかりは最小限）</label>
+        <button id="rand" class="btn">ランダム盤面</button>
+        </div>
+      </div>
+
+      <div class="group" id="pEdit" hidden>
+        <div>
+          <h2><span>道具</span></h2>
+          <div class="seg" id="tools">
+            <button class="tool" data-t="dot" aria-pressed="true">点を置く</button>
+            <button class="tool" data-t="line" aria-pressed="false">線を引く</button>
+            <button class="tool" data-t="erase" aria-pressed="false">消す</button>
+            <button class="tool" data-t="fix" aria-pressed="false">固定線にする</button>
+            <button class="tool" data-t="bridge" aria-pressed="false">橋を置く</button>
+            <button class="tool" data-t="block" aria-pressed="false">禁止マスを置く</button>
+          </div>
+        </div>
+        <div>
+          <h2><span>置く点の色（複数選べます）</span></h2>
+          <div class="seg" id="ctogs"></div>
+        </div>
+        <div>
+          <h2><span>出題の条件</span><span class="cnt" id="eInfo">点0 / 線0</span></h2>
+          <ul id="eChecks" class="checks"></ul>
+        </div>
+        <div>
+          <h2><span>問題の分析</span></h2>
+          <div id="eAnalysis" class="ana">点を置いて線でつなぐと、解の数と難易度の目安が出ます。</div>
+          <button id="deep" class="btn" hidden>くわしく調べる</button>
+        </div>
+        <button id="playtest" class="btn primary" disabled>テストプレイ</button>
+        <button id="eClear" class="btn">全消去</button>
+        <p class="note">「点を置く」で既存の点をタップすると、その点の色を変えます。</p>
+        <p class="note">「固定線にする」で線をタップすると、その線が最初から引かれた消せない線になります。固定線が少ないほど難しくなります。</p>
+        <p class="note">破線の円は「橋」で、この円の中なら線が交差してよくなります。斜線の円は「禁止マス」で、線がこの円にふれられなくなります。「消す」で、タップした特殊な点を消せます。</p>
+      </div>
+
+      <details class="code">
+        <summary>問題コード</summary>
+        <textarea id="code" spellcheck="false" aria-label="問題コード" placeholder="ここにコードを貼り付けて「読み込む」"></textarea>
+        <div class="two"><button id="codeCopy" class="btn">コード作成</button><button id="codeLoad" class="btn">読み込む</button></div>
+      </details>
+      <details class="rules">
+        <summary>ルール</summary>
+        <ul>
+          <li>線の色は、両端の点が持つ色と一致させる。</li>
+          <li>各点の数字と同じ本数の線をつなぐ（全色の合計）。</li>
+          <li>線は直線のみ。交差、重なり、別の点の上を通る線は禁止。</li>
+          <li>同じ2点を2本の線でつなぐことと、自分自身へのループは禁止。</li>
+          <li>すべての点が、ひとつのネットワークにつながっている。</li>
+          <li>破線の円は「橋」。この円の中だけは、線が交差してよい。</li>
+          <li>斜線の円は「禁止マス」。線はこの円にふれてはいけない。</li>
+        </ul>
+      </details>
+    </aside>
+  </main>
+</div>
+
+<script>
+// <logic>
+const ALL = ['R', 'B', 'G', 'Y'];
+const NEAR = 4.6;
+const MAXDOTS = 16;
+const BR = 4.5;   // bridge: lines may cross each other within this distance of its center
+const BLK = 5.2;  // forbidden zone: lines must stay at least this far from its center
+const MAXSP = 4;  // most bridges (and most forbidden zones) in one puzzle
+const colorsOf = t => t.split('');
+const G = (x, y, t, n) => ({ x: 10 + x * 8, y: 10 + y * 8, t, n });
+const LEVELS = [
+  { dots: [G(2,5,'RB',2), G(6,2,'R',2), G(6,8,'B',2), G(9,5,'RB',2)],
+    sol: [[0,1,'R'],[0,2,'B'],[1,3,'R'],[2,3,'B']] },
+  { dots: [G(1,2,'R',1), G(1,8,'R',1), G(4,5,'RB',3), G(8,2,'B',1), G(8,8,'B',1), G(6,5,'RB',3)],
+    sol: [[0,2,'R'],[1,2,'R'],[2,5,'R'],[5,3,'B'],[5,4,'B']] },
+  { dots: [G(1,3,'R',2), G(1,8,'B',2), G(4,5,'RB',4), G(8,2,'RB',2), G(9,6,'R',3), G(5,9,'RB',2), G(3.5,7.5,'B',1)],
+    sol: [[0,2,'R'],[0,3,'R'],[1,2,'B'],[1,5,'B'],[5,4,'R'],[4,2,'R'],[4,3,'R'],[6,2,'B']] }
+];
+function ptSegDist(p, a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy;
+  let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  const ex = p.x - (a.x + t * dx), ey = p.y - (a.y + t * dy);
+  return Math.sqrt(ex * ex + ey * ey);
+}
+const orient = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+function crosses(a, b, c, d) {
+  return orient(a, b, c) * orient(a, b, d) < 0 && orient(c, d, a) * orient(c, d, b) < 0;
+}
+// Special points: sp = { b: [bridges], x: [forbidden zones] }, each {x, y}. sp may be missing.
+const spB = sp => (sp && sp.b) || [];
+const spX = sp => (sp && sp.x) || [];
+const spCount = sp => spB(sp).length + spX(sp).length;
+// Where two crossing segments meet.
+function crossPoint(a, b, c, d) {
+  const o1 = orient(c, d, a), o2 = orient(c, d, b), t = o1 / (o1 - o2);
+  return { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
+}
+// A crossing is allowed when it happens inside a bridge circle.
+function bridged(a, b, c, d, sp) {
+  const bs = spB(sp);
+  if (!bs.length) return false;
+  const p = crossPoint(a, b, c, d);
+  return bs.some(z => dist(z, p) < BR);
+}
+function crossingsOk(dots, edges, sp) {
+  for (let i = 0; i < edges.length; i++) for (let j = i + 1; j < edges.length; j++) {
+    const p = edges[i], q = edges[j];
+    if (p.a === q.a || p.a === q.b || p.b === q.a || p.b === q.b) continue;
+    if (crosses(dots[p.a], dots[p.b], dots[q.a], dots[q.b]) && !bridged(dots[p.a], dots[p.b], dots[q.a], dots[q.b], sp)) return false;
+  }
+  return true;
+}
+// null if the edge can be added, otherwise a reason code
+function tryEdge(dots, edges, a, b, c, sp) {
+  if (a === b) return 'self';
+  if (!colorsOf(dots[a].t).includes(c) || !colorsOf(dots[b].t).includes(c)) return 'color';
+  if (edges.some(e => (e.a === a && e.b === b) || (e.a === b && e.b === a))) return 'dup';
+  for (let k = 0; k < dots.length; k++) {
+    if (k === a || k === b) continue;
+    if (ptSegDist(dots[k], dots[a], dots[b]) < NEAR) return 'through';
+  }
+  for (const z of spX(sp)) if (ptSegDist(z, dots[a], dots[b]) < BLK) return 'block';
+  for (const e of edges) {
+    if (e.a === a || e.a === b || e.b === a || e.b === b) continue;
+    if (crosses(dots[a], dots[b], dots[e.a], dots[e.b]) && !bridged(dots[a], dots[b], dots[e.a], dots[e.b], sp)) return 'cross';
+  }
+  return null;
+}
+function evaluate(dots, edges, sp) {
+  const n = dots.length, deg = new Array(n).fill(0), par = dots.map((_, i) => i);
+  const find = x => (par[x] === x ? x : (par[x] = find(par[x])));
+  edges.forEach(e => { deg[e.a]++; deg[e.b]++; par[find(e.a)] = find(e.b); });
+  const comps = new Set(dots.map((_, i) => find(i))).size;
+  const crossOk = edges.length > 0 && crossingsOk(dots, edges, sp);
+  const mismatch = dots.filter((d, i) => deg[i] !== d.n).length;
+  return {
+    deg, comps, mismatch,
+    used: deg.every(d => d > 0),
+    colorOk: edges.length > 0 && edges.every(e => colorsOf(dots[e.a].t).includes(e.c) && colorsOf(dots[e.b].t).includes(e.c)),
+    degOk: mismatch === 0,
+    crossOk,
+    conn: comps === 1 && edges.length > 0
+  };
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// Counts distinct solutions (edge sets with colors) of a puzzle. Stops at maxSol or maxNodes.
+// opts.fixed: lines [a, b, color] that every counted solution must contain. opts.sp: bridges and forbidden zones.
+function analyze(dots, opts) {
+  opts = opts || {};
+  const maxSol = opts.maxSol || 50, maxNodes = opts.maxNodes || 2000000;
+  const n = dots.length;
+  const cand = [];
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    const cs = colorsOf(dots[i].t).filter(c => dots[j].t.includes(c));
+    if (!cs.length) continue;
+    let thru = false;
+    for (let k = 0; k < n && !thru; k++) if (k !== i && k !== j && ptSegDist(dots[k], dots[i], dots[j]) < NEAR) thru = true;
+    if (!thru && !spX(opts.sp).some(z => ptSegDist(z, dots[i], dots[j]) < BLK)) cand.push({ i, j, cs });
+  }
+  const m = cand.length;
+  const none = { solutions: 0, capped: false, truncated: false, nodes: 0 };
+  const forced = new Array(m).fill(null);
+  for (const f of (opts.fixed || [])) {
+    const a = Math.min(f[0], f[1]), b = Math.max(f[0], f[1]);
+    const p = cand.findIndex(c => c.i === a && c.j === b && c.cs.includes(f[2]));
+    if (p < 0) return none;
+    forced[p] = f[2];
+  }
+  const conf = cand.map(() => []);
+  for (let p = 0; p < m; p++) for (let q = p + 1; q < m; q++) {
+    const a = cand[p], b = cand[q];
+    if (a.i === b.i || a.i === b.j || a.j === b.i || a.j === b.j) continue;
+    if (crosses(dots[a.i], dots[a.j], dots[b.i], dots[b.j]) && !bridged(dots[a.i], dots[a.j], dots[b.i], dots[b.j], opts.sp)) { conf[p].push(q); conf[q].push(p); }
+  }
+  // avail[x]: undecided candidate edges at x that are not blocked by a chosen crossing edge
+  const avail = new Array(n).fill(0), deg = new Array(n).fill(0), blocked = new Array(m).fill(0);
+  cand.forEach(c => { avail[c.i]++; avail[c.j]++; });
+  const chosen = [];
+  let nodes = 0, sols = 0, stop = false;
+  const feas = x => deg[x] <= dots[x].n && deg[x] + avail[x] >= dots[x].n;
+  if (!dots.every((_, x) => feas(x))) return none;
+  const find = (par, x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  function connectedPossible(p) {
+    // chosen edges plus every undecided unblocked candidate must connect all dots
+    const par = dots.map((_, i) => i);
+    chosen.forEach(c => { par[find(par, cand[c].i)] = find(par, cand[c].j); });
+    for (let q = p; q < m; q++) if (!blocked[q]) par[find(par, cand[q].i)] = find(par, cand[q].j);
+    const r = find(par, 0);
+    for (let x = 1; x < n; x++) if (find(par, x) !== r) return false;
+    return true;
+  }
+  function fullyConnected() {
+    const par = dots.map((_, i) => i);
+    chosen.forEach(c => { par[find(par, cand[c].i)] = find(par, cand[c].j); });
+    const r = find(par, 0);
+    for (let x = 1; x < n; x++) if (find(par, x) !== r) return false;
+    return true;
+  }
+  function rec(p) {
+    if (stop) return;
+    if (++nodes > maxNodes) { stop = true; return; }
+    if (p === m) {
+      for (let x = 0; x < n; x++) if (deg[x] !== dots[x].n) return;
+      if (fullyConnected()) { sols++; if (sols >= maxSol) stop = true; }
+      return;
+    }
+    const { i, j, cs } = cand[p];
+    const wasBlocked = blocked[p], f = forced[p];
+    // p is decided from here on: it no longer counts as available
+    if (!wasBlocked) { avail[i]--; avail[j]--; }
+    // option: skip this edge (not allowed for a fixed line)
+    if (!f && feas(i) && feas(j) && (p % 4 !== 0 || connectedPossible(p + 1))) rec(p + 1);
+    // option: choose this edge in one of its colors
+    if (!wasBlocked && !stop) {
+      for (const c of (f ? [f] : cs)) {
+        deg[i]++; deg[j]++; chosen.push(p);
+        const newly = [];
+        for (const q of conf[p]) { if (blocked[q]++ === 0 && q > p) { avail[cand[q].i]--; avail[cand[q].j]--; newly.push(q); } }
+        let ok = feas(i) && feas(j);
+        for (let t = 0; ok && t < newly.length; t++) ok = feas(cand[newly[t]].i) && feas(cand[newly[t]].j);
+        if (ok && (p % 4 !== 0 || connectedPossible(p + 1))) rec(p + 1);
+        for (const q of conf[p]) { if (--blocked[q] === 0 && q > p) { avail[cand[q].i]++; avail[cand[q].j]++; } }
+        chosen.pop(); deg[i]--; deg[j]--;
+        if (stop) break;
+      }
+    }
+    if (!wasBlocked) { avail[i]++; avail[j]++; }
+  }
+  rec(0);
+  return { solutions: sols, capped: sols >= maxSol, truncated: nodes > maxNodes, nodes };
+}
+// Plain sqrt (not Math.hypot) so the same seed gives the same puzzle in every browser.
+const dist = (p, q) => Math.sqrt((p.x - q.x) * (p.x - q.x) + (p.y - q.y) * (p.y - q.y));
+// Builds a puzzle from a random planar solution. Dot colors are chosen first (mostly single-color dots),
+// then lines go only between dots that share a color, which makes a one-answer puzzle likely.
+// spec = { b: number of bridges, x: number of forbidden zones } adds special points; every bridge is used by the solution.
+function generate(seed, n, k, ps, spec) {
+  ps = ps === undefined ? 0.7 : ps;
+  const cols = ALL.slice(0, k);
+  const minD = n > 12 ? 15 : 17;
+  for (let at = 0; at < 400; at++) {
+    const rnd = mulberry32(seed * 7919 + at * 104729 + 1);
+    const pts = []; let guard = 0;
+    while (pts.length < n && guard++ < 4000) {
+      const p = { x: Math.round((10 + rnd() * 80) * 10) / 10, y: Math.round((10 + rnd() * 80) * 10) / 10 };
+      if (pts.every(q => dist(p, q) >= minD)) pts.push(p);
+    }
+    if (pts.length < n) continue;
+    const dots = pts.map(p => {
+      const r = rnd(), cnt = r < ps ? 1 : (r < ps + (1 - ps) * 0.75 ? 2 : 3);
+      const pool = cols.slice(), set = [];
+      while (set.length < Math.min(cnt, k)) set.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);
+      return { x: p.x, y: p.y, t: ALL.filter(c => set.includes(c)).join(''), n: 0 };
+    });
+    const hasSp = !!(spec && (spec.b || spec.x));
+    const sp = { b: [], x: [] };
+    if (hasSp) {
+      const put = (list, cnt) => {
+        for (let q = 0; q < cnt; q++) {
+          let ok = false;
+          for (let g = 0; g < 60 && !ok; g++) {
+            const z = { x: Math.round((14 + rnd() * 72) * 10) / 10, y: Math.round((14 + rnd() * 72) * 10) / 10 };
+            if (dots.every(d => dist(d, z) >= 11) && sp.b.concat(sp.x).every(w => dist(w, z) >= 12)) { list.push(z); ok = true; }
+          }
+          if (!ok) return false;
+        }
+        return true;
+      };
+      if (!put(sp.x, spec.x || 0) || !put(sp.b, spec.b || 0)) continue;
+      // a forbidden zone only counts if it actually cuts off some possible line
+      const cuts = z => {
+        for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++)
+          if (colorsOf(dots[i].t).some(c => dots[j].t.includes(c)) && ptSegDist(z, dots[i], dots[j]) < BLK) return true;
+        return false;
+      };
+      if (!sp.x.every(cuts)) continue;
+    }
+    const cand = [];
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const cs = colorsOf(dots[i].t).filter(c => dots[j].t.includes(c));
+      if (cs.length && !spX(sp).some(z => ptSegDist(z, dots[i], dots[j]) < BLK)) cand.push({ i, j, cs, w: dist(dots[i], dots[j]) * (0.7 + rnd() * 0.6) });
+    }
+    cand.sort((a, b) => a.w - b.w);
+    const par = dots.map((_, i) => i);
+    const find = x => (par[x] === x ? x : (par[x] = find(par[x])));
+    const edges = [];
+    for (const c of cand) {
+      if (find(c.i) === find(c.j)) continue;
+      const col = c.cs[Math.floor(rnd() * c.cs.length)];
+      if (tryEdge(dots, edges, c.i, c.j, col, sp)) continue;
+      edges.push({ a: c.i, b: c.j, c: col });
+      par[find(c.i)] = find(c.j);
+    }
+    if (new Set(dots.map((_, i) => find(i))).size !== 1) continue;
+    let more = Math.round(n * 0.6 * rnd());
+    if (sp.b.length) more = Math.max(more, 3 * sp.b.length);
+    // with bridges, lines that pass a bridge are tried first so that the solution really crosses there
+    const near = new Set(sp.b.length ? cand.filter(c => sp.b.some(z => ptSegDist(z, dots[c.i], dots[c.j]) < BR * 0.8)) : []);
+    const order = sp.b.length ? cand.filter(c => near.has(c)).concat(cand.filter(c => !near.has(c))) : cand;
+    for (const c of order) {
+      if (more <= 0) break;
+      if (!near.has(c) && rnd() < 0.5) continue;
+      const col = c.cs[Math.floor(rnd() * c.cs.length)];
+      if (tryEdge(dots, edges, c.i, c.j, col, sp)) continue;
+      edges.push({ a: c.i, b: c.j, c: col });
+      more--;
+    }
+    if (cols.some(c => !edges.some(e => e.c === c))) continue;
+    const deg = new Array(n).fill(0);
+    edges.forEach(e => { deg[e.a]++; deg[e.b]++; });
+    if (deg.some(d => d > 9)) continue;
+    if (sp.b.length) {
+      const used = sp.b.map(() => 0);
+      for (let i = 0; i < edges.length; i++) for (let j = i + 1; j < edges.length; j++) {
+        const p = edges[i], q = edges[j];
+        if (p.a === q.a || p.a === q.b || p.b === q.a || p.b === q.b) continue;
+        if (!crosses(dots[p.a], dots[p.b], dots[q.a], dots[q.b])) continue;
+        const cp = crossPoint(dots[p.a], dots[p.b], dots[q.a], dots[q.b]);
+        sp.b.forEach((z, zi) => { if (dist(z, cp) < BR) used[zi]++; });
+      }
+      if (used.some(u => u === 0)) continue;
+    }
+    dots.forEach((d, i) => { d.n = deg[i]; });
+    const r = evaluate(dots, edges, sp);
+    if (!(r.used && r.colorOk && r.degOk && r.crossOk && r.conn)) continue;
+    return Object.assign({ dots, sol: edges.map(e => [e.a, e.b, e.c]) }, hasSp ? { sp } : {});
+  }
+  return null;
+}
+// Tries successive seeds until a puzzle with exactly one solution turns up.
+// opts.tries makes the result depend only on the seed (used for the daily puzzle); otherwise opts.ms is a time budget.
+function generateUnique(seed, n, k, opts) {
+  opts = opts || {};
+  const t0 = Date.now(), ms = opts.ms || 1500, maxTry = opts.tries || 300;
+  let best = null;
+  for (let t = 0; t < maxTry; t++) {
+    const p = generate(seed + t * 100003, n, k, opts.ps, opts.spec);
+    if (p) {
+      const r = analyze(p.dots, { maxSol: 2, maxNodes: 300000, sp: p.sp });
+      if (r.solutions === 1 && !r.truncated) return { puzzle: p, unique: true };
+      const score = r.truncated ? 1 : r.solutions;
+      if (!best || score < best.score) best = { puzzle: p, score };
+    }
+    if (!opts.tries && Date.now() - t0 > ms) break;
+  }
+  return { puzzle: best ? best.puzzle : null, unique: false };
+}
+// A puzzle with fixed lines: starts from a loose puzzle, fixes solution lines until the answer is unique,
+// then drops every fixed line that is not needed. Fewer fixed lines means a harder puzzle.
+function generateWithFixed(seed, n, k, opts) {
+  opts = opts || {};
+  const t0 = Date.now(), maxTry = opts.tries || 30, ps = opts.ps === undefined ? 0.45 : opts.ps;
+  for (let t = 0; t < maxTry; t++) {
+    if (opts.ms && Date.now() - t0 > opts.ms) break;
+    const p = generate(seed + t * 100003, n, k, ps, opts.spec);
+    if (!p) continue;
+    const rnd = mulberry32(seed * 31 + t * 7 + 5);
+    const order = p.sol.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const tmp = order[i]; order[i] = order[j]; order[j] = tmp; }
+    const uniq = fx => {
+      const r = analyze(p.dots, { maxSol: 2, maxNodes: 150000, fixed: fx.map(i => p.sol[i]), sp: p.sp });
+      return r.solutions === 1 && !r.truncated;
+    };
+    let fixed = [];
+    if (uniq(fixed)) continue;
+    let ok = false;
+    for (const idx of order) {
+      if (fixed.length >= Math.ceil(p.sol.length * 0.5)) break;
+      fixed.push(idx);
+      if (uniq(fixed)) { ok = true; break; }
+    }
+    if (!ok) continue;
+    for (const idx of fixed.slice()) {
+      const rest = fixed.filter(i => i !== idx);
+      if (rest.length && uniq(rest)) fixed = rest;
+    }
+    return { puzzle: Object.assign({ dots: p.dots, sol: p.sol, fixed: fixed.map(i => p.sol[i]) }, p.sp ? { sp: p.sp } : {}), unique: true };
+  }
+  return { puzzle: null, unique: false };
+}
+// A rough difficulty label from size, number of colors, how few solutions there are, how long the search took,
+// and how many lines are given for free.
+function rate(dots, r, fixedCount, spN) {
+  const n = dots.length, k = new Set(dots.map(d => d.t).join('').split('')).size;
+  const size = n <= 6 ? 0 : n <= 8 ? 1 : n <= 10 ? 2 : n <= 12 ? 3 : 4;
+  const colors = k <= 2 ? 0 : k === 3 ? 1 : 2;
+  const scarcity = r.capped ? 0 : r.truncated ? (r.solutions >= 2 ? 1 : 2) : (r.solutions === 1 ? 3 : r.solutions <= 5 ? 2 : 1);
+  const effort = r.nodes < 100 ? 0 : r.nodes < 1000 ? 1 : r.nodes < 10000 ? 2 : 3;
+  const given = Math.min(2, Math.floor((fixedCount || 0) / 3));
+  const score = Math.max(0, size + colors + scarcity + effort - given + Math.min(2, spN || 0));
+  return { score, label: score <= 3 ? 'かんたん' : score <= 6 ? 'ふつう' : score <= 9 ? 'むずかしい' : 'とてもむずかしい' };
+}
+function describeSolutions(r) {
+  if (r.truncated) return r.solutions >= 2 ? `${r.solutions}通り以上（探索を打ち切り）` : '数えきれませんでした（探索が長すぎます）';
+  if (r.capped) return `${r.solutions}通り以上`;
+  return r.solutions === 1 ? '1通り（一意）' : `${r.solutions}通り`;
+}
+// Puzzle code: a puzzle is its dots (position, colors) plus one solution; the numbers are the solution's degrees.
+// A fourth value of 1 on a line marks it as fixed (given at the start).
+const sameLine = (e, a, b, c) => ((e[0] === a && e[1] === b) || (e[0] === b && e[1] === a)) && e[2] === c;
+function encode(dots, sol, fixed, sp) {
+  const fx = (fixed || []).map(f => (Array.isArray(f) ? f : [f.a, f.b, f.c]));
+  const o = {
+    v: 1,
+    d: dots.map(d => [Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, d.t]),
+    e: sol.map(e => {
+      const l = Array.isArray(e) ? [e[0], e[1], e[2]] : [e.a, e.b, e.c];
+      return (!Array.isArray(e) && e.fixed) || fx.some(f => sameLine(f, l[0], l[1], l[2])) ? l.concat([1]) : l;
+    })
+  };
+  if (spCount(sp)) {
+    const r1 = v => Math.round(v * 10) / 10;
+    o.s = spB(sp).map(z => ['B', r1(z.x), r1(z.y)]).concat(spX(sp).map(z => ['X', r1(z.x), r1(z.y)]));
+  }
+  return 'CL1.' + btoa(JSON.stringify(o));
+}
+function decode(str) {
+  try {
+    const s = String(str).trim();
+    if (!s.startsWith('CL1.')) return { error: 'コードの形式が違います' };
+    const o = JSON.parse(atob(s.slice(4)));
+    if (!Array.isArray(o.d) || !Array.isArray(o.e) || o.d.length < 2 || o.d.length > MAXDOTS) return { error: '点の数が正しくありません' };
+    const dots = [];
+    for (const q of o.d) {
+      if (!Array.isArray(q) || q.length !== 3) return { error: '点の情報が正しくありません' };
+      const [x, y, t] = q;
+      if (typeof x !== 'number' || typeof y !== 'number' || !(x >= 0 && x <= 100 && y >= 0 && y <= 100)) return { error: '点の位置が正しくありません' };
+      if (typeof t !== 'string' || !/^[RBGY]+$/.test(t)) return { error: '点の色が正しくありません' };
+      dots.push({ x, y, t: ALL.filter(c => t.includes(c)).join(''), n: 0 });
+    }
+    const sp = { b: [], x: [] };
+    if (o.s !== undefined) {
+      if (!Array.isArray(o.s) || o.s.length > MAXSP * 2) return { error: '特殊な点の情報が正しくありません' };
+      for (const q of o.s) {
+        if (!Array.isArray(q) || q.length !== 3 || (q[0] !== 'B' && q[0] !== 'X')) return { error: '特殊な点の情報が正しくありません' };
+        const [kd, x, y] = q;
+        if (typeof x !== 'number' || typeof y !== 'number' || !(x >= 0 && x <= 100 && y >= 0 && y <= 100)) return { error: '特殊な点の位置が正しくありません' };
+        if (dots.some(d => dist(d, { x, y }) < 8)) return { error: '特殊な点の位置が正しくありません' };
+        (kd === 'B' ? sp.b : sp.x).push({ x, y });
+      }
+    }
+    const edges = [];
+    for (const q of o.e) {
+      if (!Array.isArray(q) || (q.length !== 3 && q.length !== 4)) return { error: '線の情報が正しくありません' };
+      const [a, b, c] = q;
+      if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0 || a >= dots.length || b >= dots.length || !ALL.includes(c)) return { error: '線の情報が正しくありません' };
+      if (tryEdge(dots, edges, a, b, c, sp)) return { error: '線の配置がルールに合いません' };
+      edges.push(q[3] === 1 ? { a, b, c, fixed: true } : { a, b, c });
+    }
+    const deg = evaluate(dots, edges, sp).deg;
+    dots.forEach((d, i) => { d.n = deg[i]; });
+    const r = evaluate(dots, edges, sp);
+    if (!(r.used && r.conn)) return { error: 'すべての点がつながっていません' };
+    return { dots, edges, sp };
+  } catch (e) {
+    return { error: 'コードを読み込めません' };
+  }
+}
+// Daily puzzle: the date is the seed, the weekday sets the size (Mon easiest, Sun hardest).
+const DAILY = { 1: [8, 2, 'u'], 2: [9, 3, 'u'], 3: [10, 3, 'u'], 4: [11, 4, 'u'], 5: [12, 4, 'u'], 6: [12, 4, 'f'], 0: [14, 4, 'f'] };
+const dateKey = d => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+function makeDaily(key, dow) {
+  const [n, k, kind] = DAILY[dow];
+  const g = kind === 'f' ? generateWithFixed(key, n, k, { tries: 40, ps: 0.45 }) : generateUnique(key, n, k, { tries: 80, ps: 0.5 });
+  return g.puzzle || generate(key, n, k, 0.5);
+}
+// </logic>
+
+const STAGES = [
+  LEVELS[0], LEVELS[1], LEVELS[2],
+  () => generate(133, 7, 3, 0.65),
+  () => generate(132, 9, 3, 0.4),
+  () => generate(256, 10, 4, 0.4),
+  () => generate(475, 12, 4, 0.45),
+  () => generate(210, 14, 4, 0.45),
+  () => generateWithFixed(7, 8, 3, { tries: 30, ps: 0.55 }).puzzle,
+  () => generateWithFixed(15, 12, 4, { tries: 30, ps: 0.35 }).puzzle,
+  () => generateWithFixed(87, 14, 4, { tries: 30, ps: 0.35 }).puzzle,
+  () => generateWithFixed(50, 16, 4, { tries: 30, ps: 0.35 }).puzzle,
+  () => generate(33, 8, 3, 0.5, { x: 1, b: 0 }),
+  () => generate(92, 8, 3, 0.5, { x: 0, b: 1 }),
+  () => generate(163, 10, 4, 0.4, { x: 1, b: 1 }),
+  () => generateWithFixed(21, 14, 4, { tries: 30, ps: 0.35, spec: { x: 1, b: 2 } }).puzzle
+];
+const NAME = { R: '赤', B: '青', G: '緑', Y: '黄' };
+const LINE = { R: '赤い線', B: '青い線', G: '緑の線', Y: '黄色い線' };
+const typeName = t => colorsOf(t).map(c => NAME[c]).join('・') + 'の点';
+const CHECKS = [
+  ['used', 'すべての点を使用している'],
+  ['colorOk', 'すべての線の色が両端の点に適合している'],
+  ['degOk', '各点の接続数が指定どおりになっている'],
+  ['crossOk', '線同士が交差していない'],
+  ['conn', 'すべての点が1つのネットワークにつながっている']
+];
+const HINT_PLAY = '点を2つ順にタップして線を引きます。線をタップすると消えます。複数の色を持つ点は、色が分割して表示されます。';
+const HINT_EDIT = '「点を置く」で盤面をタップして点を置き、「線を引く」で正解になる線を引きます。点の数字は、引いた線の本数から自動で決まります。「固定線にする」で、最初から引いておく線を選べます。「橋を置く」「禁止マスを置く」で、特殊な点も置けます。';
+const $ = s => document.querySelector(s);
+const gE = $('#gEdges'), gD = $('#gDots'), pv = $('#preview'), svg = $('#svg');
+let mode = 'play', stage = 0, lastStage = 0, fromEditor = false;
+let puzzle = null, edges = [], sel = null, color = 'R', cleared = false, palette = ['R', 'B'];
+let tool = 'dot', typeSel = new Set(['R', 'B']), ed = { dots: [], edges: [], sp: { b: [], x: [] } };
+let hintShown = null, hintCount = 0, playInfo = null, anaTimer = null, anaToken = 0, anaKey = '';
+let moves = 0, lastDot = 0, okPrev = null, prevCleared = false, fxPlaying = false, fxDepth = null, fxTimer = null;
+let dailyKey = 0, soundOn = true, audio = null, doneMem = {};
+
+function setMsg(t, err) { const m = $('#msg'); m.textContent = t || ''; m.className = 'msg' + (err ? ' err' : ''); if (err && t) sfx('err'); }
+function buildSwatches(list) {
+  if (!list.includes(color)) color = list[0];
+  $('#swatches').innerHTML = list.map(c => `<button class="swatch" data-c="${c}" aria-pressed="${c === color}">${LINE[c]}<kbd>${c}</kbd></button>`).join('');
+  document.querySelectorAll('.swatch').forEach(b => b.addEventListener('click', () => setColor(b.dataset.c)));
+}
+function setPuzzle(p) {
+  puzzle = p;
+  palette = ALL.filter(c => p.dots.some(d => colorsOf(d.t).includes(c)));
+  buildSwatches(palette);
+  hintCount = 0; moves = 0; lastDot = 0; playInfo = null;
+  reset();
+  updateHint();
+  updateInfo();
+  const token = ++anaToken;
+  setTimeout(() => {
+    if (token !== anaToken || puzzle !== p) return;
+    const r = analyze(p.dots, { maxSol: 50, maxNodes: 300000, fixed: p.fixed || [], sp: p.sp });
+    playInfo = { r, level: rate(p.dots, r, (p.fixed || []).length, spCount(p.sp)) };
+    updateInfo();
+  }, 0);
+}
+function load(i) {
+  stage = i; lastStage = i; fromEditor = false;
+  const s = STAGES[i];
+  setPuzzle((typeof s === 'function' ? s() : s) || LEVELS[2]);
+  document.querySelectorAll('.tab').forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+}
+function playCustom(p, fromEd, st) {
+  stage = st === undefined ? -2 : st; fromEditor = fromEd;
+  setPuzzle(p);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-pressed', 'false'));
+}
+function loadRandom() {
+  stage = -1; fromEditor = false;
+  const n = +$('#size').value, k = +$('#kcol').value, seed = Math.floor(Math.random() * 1e6), spo = $('#spopt').value;
+  const cnt = n >= 12 ? 2 : 1;
+  const spec = spo === '0' ? null : { x: spo.includes('x') ? cnt : 0, b: spo.includes('b') ? cnt : 0 };
+  const build = sc => {
+    let p = null, note = '';
+    if ($('#fixopt').checked) {
+      p = generateWithFixed(seed, n, k, { ms: 1500, spec: sc }).puzzle;
+      if (!p) note = '固定線つきの盤面が見つからなかったので、通常の盤面です';
+    }
+    if (!p) {
+      if ($('#uniq').checked) {
+        const g = generateUnique(seed, n, k, { ms: 1200, spec: sc });
+        p = g.puzzle;
+        if (p && !g.unique) note = '解が1通りの盤面は見つからなかったので、別解のある盤面です';
+      } else p = generate(seed, n, k, undefined, sc);
+    }
+    return { p, note };
+  };
+  let res = build(spec);
+  if (spec && !res.p) { res = build(null); res.note = '特殊な点つきの盤面が見つからなかったので、通常の盤面です'; }
+  setPuzzle(res.p || LEVELS[2]);
+  if (res.note) setMsg(res.note);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-pressed', 'false'));
+}
+function reset() {
+  edges = (puzzle.fixed || []).map(f => ({ a: f[0], b: f[1], c: f[2], fixed: true }));
+  sel = null; cleared = false; hintShown = null; okPrev = null; prevCleared = false; fxPlaying = false; clearTimeout(fxTimer);
+  setMsg(''); render();
+}
+function syncSwatches() { document.querySelectorAll('.swatch').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === color))); }
+function setColor(c) { if (!palette.includes(c)) return; color = c; syncSwatches(); render(); }
+const supports = (i, c) => colorsOf(puzzle.dots[i].t).includes(c);
+
+function updateModeUI() {
+  const edit = mode === 'edit';
+  $('#tabs').hidden = edit; $('#pPlay').hidden = edit; $('#pEdit').hidden = !edit;
+  $('#mPlay').setAttribute('aria-pressed', String(!edit)); $('#mEdit').setAttribute('aria-pressed', String(edit));
+  updateHint();
+  $('#board').classList.toggle('edit', edit);
+  $('#backEdit').hidden = edit || !fromEditor;
+}
+function enterPlay() {
+  mode = 'play';
+  load(Math.max(lastStage, 0));
+  updateModeUI();
+}
+function enterEdit() {
+  mode = 'edit'; fromEditor = false; sel = null; hintShown = null; anaKey = ''; fxPlaying = false; clearTimeout(fxTimer); setMsg('');
+  puzzle = { dots: ed.dots, sp: ed.sp }; edges = ed.edges; palette = ALL.slice();
+  buildSwatches(palette);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  updateModeUI(); renderTools(); render();
+}
+function startTest() {
+  mode = 'play';
+  playCustom({ dots: ed.dots.map(d => ({ ...d })), sol: ed.edges.map(e => [e.a, e.b, e.c]), fixed: ed.edges.filter(e => e.fixed).map(e => [e.a, e.b, e.c]), sp: { b: ed.sp.b.map(z => ({ ...z })), x: ed.sp.x.map(z => ({ ...z })) } }, true);
+  updateModeUI();
+}
+// Editor: every change goes through commit(), which recomputes each dot's number from the drawn lines.
+function commit(dots, es, sp) {
+  if (sp) ed.sp = sp;
+  const deg = evaluate(dots, es, ed.sp).deg;
+  ed.dots = dots.map((d, i) => ({ ...d, n: deg[i] }));
+  ed.edges = es;
+  puzzle = { dots: ed.dots, sp: ed.sp }; edges = ed.edges; sel = null;
+  render();
+}
+function renderTools() {
+  document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === tool)));
+  $('#ctogs').innerHTML = ALL.map(c => `<button class="ctog" data-c="${c}" aria-pressed="${typeSel.has(c)}">${NAME[c]}</button>`).join('');
+  document.querySelectorAll('.ctog').forEach(b => b.addEventListener('click', () => {
+    const c = b.dataset.c;
+    if (typeSel.has(c)) { if (typeSel.size > 1) typeSel.delete(c); else setMsg('点の色は1色以上選んでください', true); }
+    else typeSel.add(c);
+    renderTools();
+  }));
+}
+function placeDot(ev) {
+  const m = svg.getScreenCTM(); if (!m) return;
+  const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+  const p = pt.matrixTransform(m.inverse());
+  const x = Math.round(Math.min(92, Math.max(8, p.x)) * 10) / 10, y = Math.round(Math.min(92, Math.max(8, p.y)) * 10) / 10;
+  const dots = puzzle.dots;
+  if (dots.length >= MAXDOTS) { setMsg(`点は${MAXDOTS}個までです`, true); return; }
+  if (dots.some(d => Math.hypot(d.x - x, d.y - y) < 10)) { setMsg('ほかの点に近すぎます', true); return; }
+  if (spB(ed.sp).concat(spX(ed.sp)).some(w => dist(w, { x, y }) < 10)) { setMsg('特殊な点に近すぎます', true); return; }
+  if (edges.some(e => ptSegDist({ x, y }, dots[e.a], dots[e.b]) < 6)) { setMsg('線に近すぎます。線の上には点を置けません', true); return; }
+  setMsg('');
+  commit(dots.concat([{ x, y, t: ALL.filter(c => typeSel.has(c)).join(''), n: 0 }]), edges);
+}
+function editDot(i) {
+  const dots = puzzle.dots;
+  if (tool === 'erase') {
+    commit(dots.filter((_, k) => k !== i),
+      edges.filter(e => e.a !== i && e.b !== i).map(e => ({ a: e.a > i ? e.a - 1 : e.a, b: e.b > i ? e.b - 1 : e.b, c: e.c, fixed: e.fixed })));
+    setMsg('');
+  } else if (tool === 'dot') {
+    const t = ALL.filter(c => typeSel.has(c)).join('');
+    const ne = edges.filter(e => !((e.a === i || e.b === i) && !t.includes(e.c)));
+    const removed = edges.length - ne.length;
+    commit(dots.map((d, k) => (k === i ? { ...d, t } : d)), ne);
+    setMsg(removed ? `色に合わない線を${removed}本消しました` : '');
+  } else if (tool === 'line') playDot(i);
+}
+function boardPoint(ev) {
+  const m = svg.getScreenCTM(); if (!m) return null;
+  const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+  return pt.matrixTransform(m.inverse());
+}
+// Editor: put a bridge ('B') or a forbidden zone ('X') where the board was tapped.
+function placeSpecial(ev, kind) {
+  const p = boardPoint(ev); if (!p) return;
+  const x = Math.round(Math.min(90, Math.max(10, p.x)) * 10) / 10, y = Math.round(Math.min(90, Math.max(10, p.y)) * 10) / 10;
+  const sp = ed.sp, dots = puzzle.dots, list = kind === 'B' ? sp.b : sp.x;
+  if (list.length >= MAXSP) { setMsg(`${kind === 'B' ? '橋' : '禁止マス'}は${MAXSP}個までです`, true); return; }
+  if (dots.some(d => dist(d, { x, y }) < 10)) { setMsg('点に近すぎます', true); return; }
+  if (sp.b.concat(sp.x).some(w => dist(w, { x, y }) < 10)) { setMsg('ほかの特殊な点に近すぎます', true); return; }
+  if (kind === 'X' && edges.some(e => ptSegDist({ x, y }, dots[e.a], dots[e.b]) < BLK + 1)) { setMsg('線に近すぎます。禁止マスは線から離して置いてください', true); return; }
+  setMsg('');
+  commit(dots, edges, { b: kind === 'B' ? sp.b.concat([{ x, y }]) : sp.b, x: kind === 'X' ? sp.x.concat([{ x, y }]) : sp.x });
+  sfx('add', kind === 'B' ? 'G' : 'Y');
+}
+function eraseSpecial(kind, i) {
+  const sp = ed.sp, ns = { b: sp.b.slice(), x: sp.x.slice() };
+  (kind === 'B' ? ns.b : ns.x).splice(i, 1);
+  if (kind === 'B' && !crossingsOk(puzzle.dots, edges, ns)) { setMsg('この橋の上で交差している線があります。先に線を消してください', true); return; }
+  setMsg('');
+  commit(puzzle.dots, edges, ns);
+  sfx('del');
+}
+
+function updateInfo() {
+  const lv = playInfo ? `難易度の目安：${playInfo.level.label}　解の数：${describeSolutions(playInfo.r)}` : '難易度を調べています…';
+  $('#pInfo').textContent = `${stage === -3 ? dailyLabel() + '　' : ''}${lv}　ヒント：${hintCount}回`;
+}
+function updateHint() {
+  const fixedNote = puzzle && puzzle.fixed && puzzle.fixed.length ? ' 丸い印のついた線は、最初から引かれている固定線です（消せません）。' : '';
+  const sp = puzzle && puzzle.sp;
+  const spNote = (spB(sp).length ? ' 破線の円は橋で、この円の中では線が交差できます。' : '') + (spX(sp).length ? ' 斜線の円は禁止マスで、線がふれられません。' : '');
+  $('#hint').textContent = mode === 'edit' ? HINT_EDIT : HINT_PLAY + fixedNote + spNote;
+}
+// Clear effect: a light runs along the lines outward from the last dot you connected.
+function startFx() {
+  const n = puzzle.dots.length, adj = puzzle.dots.map(() => []);
+  edges.forEach(e => { adj[e.a].push(e.b); adj[e.b].push(e.a); });
+  const start = lastDot < n ? lastDot : 0, depth = new Array(n).fill(0), seen = new Array(n).fill(false), q = [start];
+  seen[start] = true;
+  while (q.length) { const x = q.shift(); adj[x].forEach(y => { if (!seen[y]) { seen[y] = true; depth[y] = depth[x] + 1; q.push(y); } }); }
+  fxDepth = depth; fxPlaying = true;
+  clearTimeout(fxTimer);
+  fxTimer = setTimeout(() => { fxPlaying = false; render(); }, 3000);
+  sfx('clear');
+  if (stage === -3) recordDaily();
+}
+// Sound: small synthesized tones, no audio files. Starts only after the first tap (browser rule).
+function tone(freq, t, dur, type, vol) {
+  const o = audio.createOscillator(), g = audio.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(audio.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+function sfx(kind, c) {
+  if (!soundOn) return;
+  try {
+    if (!audio) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; audio = new AC(); }
+    if (audio.state === 'suspended') audio.resume();
+    const t = audio.currentTime, f = { R: 523.25, B: 659.25, G: 783.99, Y: 880 }[c] || 523.25;
+    if (kind === 'add') tone(f, t, 0.18, 'triangle', 0.16);
+    else if (kind === 'del') tone(f / 2, t, 0.1, 'sine', 0.12);
+    else if (kind === 'err') tone(130.8, t, 0.14, 'sawtooth', 0.06);
+    else if (kind === 'ok') tone(1046.5, t + 0.08, 0.12, 'sine', 0.1);
+    else if (kind === 'hint') { tone(659.25, t, 0.12, 'sine', 0.12); tone(987.77, t + 0.1, 0.18, 'sine', 0.12); }
+    else if (kind === 'clear') [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((fr, k) => tone(fr, t + k * 0.1, 0.45, 'triangle', 0.13));
+  } catch (e) { /* sound is optional */ }
+}
+function setSound(on) {
+  soundOn = on;
+  $('#snd').setAttribute('aria-pressed', String(on)); $('#snd').textContent = on ? '音 ON' : '音 OFF';
+  try { localStorage.setItem('cl.sound', on ? '1' : '0'); } catch (e) { /* storage is optional */ }
+}
+// Daily puzzle: one board per date and weekday; clears are remembered in this browser only.
+function loadDone() { try { const v = JSON.parse(localStorage.getItem('cl.daily') || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; } }
+function recordDaily() {
+  if (doneMem[dailyKey]) return;
+  doneMem[dailyKey] = { hints: hintCount, moves };
+  try { localStorage.setItem('cl.daily', JSON.stringify(doneMem)); } catch (e) { /* storage is optional */ }
+  updateDailyTab();
+}
+function streak() {
+  const d = new Date();
+  if (!doneMem[dateKey(d)]) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (doneMem[dateKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function streakText() { return `連続クリア：${streak()}日　これまでに ${Object.keys(doneMem).length}日クリア`; }
+function dailyParts() {
+  const s = String(dailyKey), m = +s.slice(4, 6), day = +s.slice(6, 8);
+  return { m, day, w: '日月火水木金土'[new Date(+s.slice(0, 4), m - 1, day).getDay()] };
+}
+function dailyLabel() { const p = dailyParts(); return `今日の問題 ${p.m}/${p.day}（${p.w}）`; }
+function updateDailyTab() { $('#daily').textContent = '今日の問題' + (doneMem[dateKey(new Date())] ? ' ✓' : ''); }
+function startDaily() {
+  const now = new Date(), key = dateKey(now), dow = now.getDay();
+  setMsg('今日の問題を作っています…');
+  setTimeout(() => {
+    dailyKey = key;
+    playCustom(makeDaily(key, dow), false, -3);
+    setMsg('');
+    $('#daily').setAttribute('aria-pressed', 'true');
+  }, 20);
+}
+async function shareResult() {
+  const p = dailyParts(), lv = playInfo ? playInfo.level.label : '';
+  const text = `COLOR LINK ${p.m}/${p.day}（${p.w}）クリア！ 難易度：${lv}　ヒント${hintCount}回　線を引いた回数${moves}回`;
+  try { await navigator.clipboard.writeText(text); setMsg('結果をコピーしました'); }
+  catch (e) { setMsg(text); }
+}
+// Shows one line of the stored solution that is still missing; if none is missing, points at a line that should not be there.
+function showHint() {
+  if (mode !== 'play' || cleared || !puzzle.sol) return;
+  const dots = puzzle.dots;
+  const same = (e, a, b) => (e.a === a && e.b === b) || (e.a === b && e.b === a);
+  const missing = puzzle.sol.filter(([a, b, c]) => !edges.some(e => same(e, a, b) && e.c === c));
+  sel = null;
+  if (missing.length) {
+    const open = missing.find(([a, b, c]) => !tryEdge(dots, edges, a, b, c, puzzle.sp));
+    const [a, b, c] = open || missing[0];
+    hintShown = { a, b, c };
+    if (palette.includes(c)) { color = c; syncSwatches(); }
+    const why = open ? null : tryEdge(dots, edges, a, b, c, puzzle.sp);
+    const tail = why === 'dup' ? 'この2点には別の色の線が引かれています。消して引き直してください。'
+      : why ? 'ただし、ぶつかる線が引かれています。先にそちらを見直してください。' : '';
+    setMsg(`光っている2点を${LINE[c]}でつなぎます。${tail}`);
+  } else {
+    const extra = edges.findIndex(e => !puzzle.sol.some(([a, b, c]) => same(e, a, b) && e.c === c));
+    if (extra < 0) { setMsg('ヒントはありません'); return; }
+    hintShown = { a: edges[extra].a, b: edges[extra].b, c: edges[extra].c, remove: true };
+    setMsg('光っている線は余分です。消してみてください');
+  }
+  hintCount++; sfx('hint'); updateInfo(); render();
+}
+// Editor analysis: counts the solutions of the drawn puzzle (short budget on each change, longer on request).
+function scheduleAnalysis(dots, deep) {
+  clearTimeout(anaTimer);
+  const fx = edges.filter(e => e.fixed).map(e => [e.a, e.b, e.c]);
+  const my = ++anaToken, box = $('#eAnalysis');
+  $('#deep').hidden = true;
+  if (!dots) { box.textContent = '点を置いて線でつなぐと、解の数と難易度の目安が出ます。'; return; }
+  box.textContent = '分析中…';
+  anaTimer = setTimeout(() => {
+    if (my !== anaToken || mode !== 'edit') return;
+    const r = analyze(dots, { maxSol: 50, maxNodes: deep ? 4000000 : 200000, fixed: fx, sp: ed.sp });
+    if (my !== anaToken) return;
+    const level = rate(dots, r, fx.length, spCount(ed.sp));
+    let advice;
+    if (r.truncated) advice = '解の数を数えきれませんでした。「くわしく調べる」で長めに探せます。';
+    else if (r.solutions === 1) advice = fx.length ? `固定線${fx.length}本で、解が1通りになります。` : '解は1通りです。出題に向いています。';
+    else advice = '別解があります。点の色を1色に絞る、線を足す、点の位置を変える、固定線を足す、禁止マスを置くと、解が減ります。';
+    box.innerHTML = `<span>解の数</span><b>${describeSolutions(r)}</b><span>難易度の目安</span><b>${level.label}</b><p>${advice}</p>`;
+    $('#deep').hidden = !(r.truncated && !deep);
+  }, deep ? 20 : 250);
+}
+function slice(cx, cy, r, i, k) {
+  const a0 = -Math.PI / 2 + i * 2 * Math.PI / k, a1 = -Math.PI / 2 + (i + 1) * 2 * Math.PI / k;
+  const f = v => v.toFixed(2);
+  return `M${cx} ${cy}L${f(cx + r * Math.cos(a0))} ${f(cy + r * Math.sin(a0))}A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${f(cx + r * Math.cos(a1))} ${f(cy + r * Math.sin(a1))}Z`;
+}
+function specialsSVG(sp) {
+  const f = v => Math.round(v * 10) / 10;
+  return spX(sp).map((z, i) => `<g class="spt" data-sp="X" data-i="${i}" role="img" aria-label="禁止マス。線はここにふれられません">`
+      + `<circle class="blkbg" cx="${z.x}" cy="${z.y}" r="${BLK}"/><circle class="blk" cx="${z.x}" cy="${z.y}" r="${BLK}"/>`
+      + `<path class="blkx" d="M${f(z.x - 1.8)} ${f(z.y - 1.8)}L${f(z.x + 1.8)} ${f(z.y + 1.8)}M${f(z.x - 1.8)} ${f(z.y + 1.8)}L${f(z.x + 1.8)} ${f(z.y - 1.8)}"/></g>`).join('')
+    + spB(sp).map((z, i) => `<g class="spt" data-sp="B" data-i="${i}" role="img" aria-label="橋。この円の中では線が交差できます">`
+      + `<circle class="brg" cx="${z.x}" cy="${z.y}" r="${BR}"/>`
+      + `<path class="brgm" d="M${f(z.x - 1.6)} ${z.y}H${f(z.x + 1.6)}M${z.x} ${f(z.y - 1.6)}V${f(z.y + 1.6)}"/></g>`).join('');
+}
+function dotSVG(d, i, cls, deg, st) {
+  const r = 4.4, cs = colorsOf(d.t);
+  const body = cs.length === 1
+    ? `<circle class="b-${cs[0]}" cx="${d.x}" cy="${d.y}" r="${r}"/>`
+    : cs.map((c, k) => `<path class="b-${c}" d="${slice(d.x, d.y, r, k, cs.length)}"/>`).join('');
+  return `<g class="dot ${cls}"${st || ''} tabindex="0" role="button" data-dot="${i}" data-key="d${i}" aria-label="点${i + 1}、${typeName(d.t)}、指定${d.n}本、現在${deg}本">`
+    + `<circle class="ring" cx="${d.x}" cy="${d.y}" r="6.3"/>${body}<circle class="outline" cx="${d.x}" cy="${d.y}" r="${r}"/>`
+    + `<circle class="hub" cx="${d.x}" cy="${d.y}" r="2.7"/><text class="num" x="${d.x}" y="${d.y + 0.2}">${d.n}</text></g>`;
+}
+function render() {
+  const dots = puzzle.dots, r = evaluate(dots, edges, puzzle.sp), play = mode === 'play';
+  $('#gSp').innerHTML = specialsSVG(puzzle.sp);
+  let justCleared = false;
+  if (play) {
+    const was = prevCleared;
+    cleared = CHECKS.every(([k]) => r[k]);
+    if (cleared) sel = null;
+    justCleared = cleared && !was; prevCleared = cleared;
+    if (justCleared) startFx(); else if (!cleared) fxPlaying = false;
+  }
+  const a = document.activeElement, fk = a && a.dataset && svg.contains(a) ? a.dataset.key : null;
+  gE.innerHTML = edges.map((e, k) => {
+    const p = dots[e.a], q = dots[e.b], mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    const mark = e.fixed ? `<circle class="fixmark" cx="${mx}" cy="${my}" r="1.7"/><circle class="fixdot" cx="${mx}" cy="${my}" r=".6"/>` : '';
+    return `<g class="egrp${e.fixed ? ' fixed' : ''}" tabindex="0" role="button" data-edge="${k}" data-key="e${e.a}-${e.b}" aria-label="${e.fixed ? '固定線、' : ''}${LINE[e.c]}、点${e.a + 1}と点${e.b + 1}${e.fixed ? '' : '。押すと削除'}">`
+      + `<line class="ehit" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}"/><line class="eline ${e.c}" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}"/>${mark}</g>`;
+  }).join('');
+  let popped = 0;
+  gD.innerHTML = dots.map((d, i) => {
+    const cls = [];
+    if (i === sel) cls.push('sel');
+    else if (sel !== null) cls.push(supports(sel, color) && supports(i, color) ? 'target' : 'dim');
+    if (play && hintShown && (i === hintShown.a || i === hintShown.b)) cls.push('hint');
+    if (play) {
+      if (r.deg[i] === d.n) { cls.push('ok'); if (okPrev && !okPrev.has(i)) { cls.push('pop'); popped++; } }
+      else if (r.deg[i] > d.n) cls.push('over');
+    } else if (r.deg[i] === 0) cls.push('bad');
+    const fx = fxPlaying && fxDepth;
+    if (fx) cls.push('celebrate');
+    return dotSVG(d, i, cls.join(' '), r.deg[i], fx ? ` style="--d:${(fxDepth[i] * 0.16).toFixed(2)}s"` : '');
+  }).join('');
+  if (fk) { const el = svg.querySelector(`[data-key="${fk}"]`); if (el) el.focus({ preventScroll: true }); }
+  if (sel === null) pv.classList.add('off');
+  else { pv.setAttribute('class', 'pv ' + color); pv.setAttribute('x1', dots[sel].x); pv.setAttribute('y1', dots[sel].y); }
+  $('#board').classList.toggle('done', play && cleared);
+  if (play) {
+    if (popped && !justCleared) sfx('ok');
+    okPrev = new Set(dots.map((_, i) => i).filter(i => r.deg[i] === dots[i].n));
+  }
+  $('#gFx').innerHTML = fxPlaying && fxDepth
+    ? edges.map(e => `<path class="wave" pathLength="1" style="--d:${(Math.min(fxDepth[e.a], fxDepth[e.b]) * 0.16 + 0.05).toFixed(2)}s" d="M${dots[e.a].x} ${dots[e.a].y}L${dots[e.b].x} ${dots[e.b].y}"/>`).join('')
+    : '';
+  const hl = $('#hintLine');
+  if (play && hintShown) {
+    hl.setAttribute('class', 'hintline ' + (hintShown.remove ? 'rm' : hintShown.c));
+    hl.setAttribute('x1', dots[hintShown.a].x); hl.setAttribute('y1', dots[hintShown.a].y);
+    hl.setAttribute('x2', dots[hintShown.b].x); hl.setAttribute('y2', dots[hintShown.b].y);
+  } else hl.setAttribute('class', 'hintline off');
+  $('#hintBtn').disabled = !play || cleared || !puzzle.sol;
+  if (play) {
+    const total = dots.reduce((s, d) => s + d.n, 0) / 2;
+    $('#lc').textContent = edges.length; $('#lt').textContent = total;
+    let ok = 0;
+    $('#checks').innerHTML = CHECKS.map(([k, t]) => { if (r[k]) ok++; return `<li class="${r[k] ? 'ok' : ''}"><span class="tick" aria-hidden="true"></span><span>${t}${r[k] ? '（達成）' : ''}</span></li>`; }).join('');
+    $('#count').textContent = ok + '/5';
+    $('#clear').hidden = !cleared;
+    $('#share').hidden = stage !== -3;
+    $('#streak').hidden = stage !== -3;
+    if (stage === -3) $('#streak').textContent = streakText();
+    $('#next').textContent = fromEditor ? 'つくるに戻る' : (stage >= 0 && stage < STAGES.length - 1 ? '次のステージ' : '新しいランダム盤面');
+  } else {
+    const items = [
+      ['点が2個以上ある', dots.length >= 2],
+      ['すべての点に線がつながっている', dots.length > 0 && r.used],
+      ['全体がひとつにつながっている', r.conn]
+    ];
+    $('#eChecks').innerHTML = items.map(([t, v]) => `<li class="${v ? 'ok' : ''}"><span class="tick" aria-hidden="true"></span><span>${t}${v ? '（達成）' : ''}</span></li>`).join('');
+    const nf = edges.filter(e => e.fixed).length;
+    $('#eInfo').textContent = `点${dots.length} / 線${edges.length}${nf ? ` / 固定${nf}` : ''}${spCount(puzzle.sp) ? ` / 特殊${spCount(puzzle.sp)}` : ''}`;
+    const valid = items.every(([, v]) => v);
+    $('#playtest').disabled = !valid;
+    const key = valid ? dots.map(d => `${d.x},${d.y},${d.t},${d.n}`).join(';') + '|' + edges.map(e => (e.fixed ? 1 : 0)).join('') + '|' + JSON.stringify(ed.sp) : '';
+    if (key !== anaKey) { anaKey = key; scheduleAnalysis(valid ? dots : null, false); }
+  }
+}
+function explain(why, a, b) {
+  if (why === 'color') {
+    const bad = !supports(a, color) ? puzzle.dots[a] : puzzle.dots[b];
+    return `${typeName(bad.t)}には${LINE[color]}をつなげません`;
+  }
+  return { dup: 'この2点はすでにつながっています', through: '別の点の上を通る線は引けません', block: '禁止マスにふれる線は引けません',
+    cross: spB(puzzle.sp).length ? 'ほかの線と交差する線は引けません（橋の円の中だけ、交差できます）' : 'ほかの線と交差する線は引けません', self: '' }[why];
+}
+function playDot(i) {
+  const dots = puzzle.dots;
+  if (sel === null) {
+    const cs = colorsOf(dots[i].t);
+    if (!cs.includes(color)) { color = cs[0]; syncSwatches(); }
+    sel = i; setMsg('');
+  } else if (sel === i) {
+    sel = null;
+  } else {
+    const why = tryEdge(dots, edges, sel, i, color, puzzle.sp);
+    if (why) { setMsg(explain(why, sel, i), true); }
+    else if (mode === 'edit') { commit(dots, edges.concat([{ a: sel, b: i, c: color }])); setMsg(''); sfx('add', color); return; }
+    else { edges.push({ a: sel, b: i, c: color }); lastDot = i; moves++; sel = null; hintShown = null; setMsg(''); sfx('add', color); }
+  }
+  render();
+}
+function onDot(i) { if (mode === 'edit') editDot(i); else playDot(i); }
+function onEdge(k) {
+  if (mode === 'edit') {
+    if (tool === 'dot') return;
+    if (tool === 'fix') {
+      const c = edges[k].c;
+      commit(puzzle.dots, edges.map((e, j) => (j === k ? { ...e, fixed: !e.fixed } : e)));
+      setMsg(''); sfx('add', c); return;
+    }
+    commit(puzzle.dots, edges.filter((_, j) => j !== k)); sfx('del');
+  } else {
+    if (edges[k].fixed) { setMsg('固定線は消せません', true); return; }
+    edges.splice(k, 1); hintShown = null; sfx('del'); render();
+  }
+  setMsg('');
+}
+svg.addEventListener('click', ev => {
+  if (mode === 'edit' && (tool === 'bridge' || tool === 'block')) { if (ev.detail > 0) placeSpecial(ev, tool === 'bridge' ? 'B' : 'X'); return; }
+  const d = ev.target.closest('[data-dot]'), e = ev.target.closest('[data-edge]'), s = ev.target.closest('[data-sp]');
+  if (d) onDot(+d.dataset.dot);
+  else if (e) onEdge(+e.dataset.edge);
+  else if (mode === 'edit') {
+    if (s && tool === 'erase') eraseSpecial(s.dataset.sp, +s.dataset.i);
+    else if (tool === 'dot') placeDot(ev);
+    else if (tool === 'bridge') placeSpecial(ev, 'B');
+    else if (tool === 'block') placeSpecial(ev, 'X');
+  }
+});
+svg.addEventListener('keydown', ev => {
+  const t = ev.target;
+  if (!t.closest) return;
+  const d = t.closest('[data-dot]'), e = t.closest('[data-edge]');
+  if (ev.key === 'Enter' || ev.key === ' ') { if (d || e) { ev.preventDefault(); t.dispatchEvent(new MouseEvent('click', { bubbles: true })); } }
+  else if ((ev.key === 'Delete' || ev.key === 'Backspace') && e) { ev.preventDefault(); onEdge(+e.dataset.edge); }
+});
+svg.addEventListener('pointermove', ev => {
+  if (sel === null) return;
+  const m = svg.getScreenCTM(); if (!m) return;
+  const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+  const p = pt.matrixTransform(m.inverse());
+  pv.setAttribute('class', 'pv ' + color);
+  pv.setAttribute('x1', puzzle.dots[sel].x); pv.setAttribute('y1', puzzle.dots[sel].y);
+  pv.setAttribute('x2', p.x); pv.setAttribute('y2', p.y);
+});
+svg.addEventListener('pointerleave', () => pv.classList.add('off'));
+document.addEventListener('keydown', ev => {
+  if (ev.target.tagName === 'SELECT' || ev.target.tagName === 'TEXTAREA' || ev.ctrlKey || ev.metaKey) return;
+  const k = ev.key.toUpperCase();
+  if (ALL.includes(k) && ev.key.length === 1) setColor(k);
+  else if (ev.key === 'Escape') { sel = null; render(); }
+});
+document.querySelectorAll('.tool').forEach(b => b.addEventListener('click', () => { tool = b.dataset.t; sel = null; setMsg(''); renderTools(); render(); }));
+$('#mPlay').addEventListener('click', () => { if (mode !== 'play') enterPlay(); });
+$('#mEdit').addEventListener('click', () => { if (mode !== 'edit') enterEdit(); });
+$('#reset').addEventListener('click', reset);
+$('#snd').addEventListener('click', () => { setSound(!soundOn); if (soundOn) sfx('add', 'R'); });
+$('#share').addEventListener('click', shareResult);
+$('#hintBtn').addEventListener('click', showHint);
+$('#deep').addEventListener('click', () => { if (mode === 'edit' && anaKey) scheduleAnalysis(puzzle.dots, true); });
+$('#eClear').addEventListener('click', () => { commit([], [], { b: [], x: [] }); setMsg(''); });
+$('#rand').addEventListener('click', loadRandom);
+$('#playtest').addEventListener('click', startTest);
+$('#backEdit').addEventListener('click', enterEdit);
+$('#next').addEventListener('click', () => {
+  if (fromEditor) enterEdit();
+  else if (stage >= 0 && stage < STAGES.length - 1) load(stage + 1);
+  else loadRandom();
+});
+$('#codeCopy').addEventListener('click', async () => {
+  const dots = puzzle.dots;
+  const sol = mode === 'edit' ? edges : (puzzle.sol || []);
+  if (dots.length < 2 || !sol.length) { setMsg('点を2つ以上置き、線でつないでからコードを作ってください', true); return; }
+  const code = encode(dots, sol, mode === 'edit' ? [] : puzzle.fixed, puzzle.sp), ta = $('#code');
+  ta.value = code;
+  try { await navigator.clipboard.writeText(code); setMsg('コードをコピーしました'); }
+  catch (e) { ta.focus(); ta.select(); setMsg('コードを選択しました。コピーして使ってください'); }
+});
+$('#codeLoad').addEventListener('click', () => {
+  const res = decode($('#code').value);
+  if (res.error) { setMsg(res.error, true); return; }
+  if (mode === 'edit') { commit(res.dots, res.edges, res.sp); setMsg('読み込みました。「テストプレイ」で遊べます'); }
+  else { playCustom({ dots: res.dots, sol: res.edges.map(e => [e.a, e.b, e.c]), fixed: res.edges.filter(e => e.fixed).map(e => [e.a, e.b, e.c]), sp: res.sp }, false); updateModeUI(); setMsg('読み込みました'); }
+});
+$('#tabs').innerHTML = STAGES.map((_, i) => `<button class="tab" aria-pressed="false" aria-label="ステージ${i + 1}">${i + 1}</button>`).join('') + '<button class="tab daily" id="daily" aria-pressed="false">今日の問題</button>';
+document.querySelectorAll('.tab:not(.daily)').forEach((b, i) => b.addEventListener('click', () => load(i)));
+$('#daily').addEventListener('click', startDaily);
+doneMem = loadDone();
+try { setSound(localStorage.getItem('cl.sound') !== '0'); } catch (e) { setSound(true); }
+renderTools();
+load(0);
+updateModeUI();
+updateDailyTab();
+</script>
+
+</body></html>
